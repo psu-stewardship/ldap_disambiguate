@@ -1,4 +1,4 @@
-# ldap_dsiambiguate
+# ldap_disambiguate
 Use ldap to disambiguate a user name against the PSU LDAP.
 
 ## Useage
