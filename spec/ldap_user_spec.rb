@@ -11,7 +11,7 @@ describe LdapDisambiguate::LdapUser, type: :model do
       entry['cn'] = ['CAROLYN A COLE']
       entry
     end
-    context "LDAP behaves" do
+    context 'LDAP behaves' do
       before do
         expect(Hydra::LDAP).to receive(:get_user).and_return([entry]) if in_travis
       end
@@ -21,23 +21,22 @@ describe LdapDisambiguate::LdapUser, type: :model do
       end
     end
 
-    context "LDAP miss behaves" do
+    context 'LDAP miss behaves' do
       before do
         filter = Net::LDAP::Filter.eq('uid', 'cam156')
-        allow(Hydra::LDAP).to receive(:get_user).twice.with(filter,["cn"]).and_return([entry])
+        allow(Hydra::LDAP).to receive(:get_user).twice.with(filter, ['cn']).and_return([entry])
         # get unwilling the first run through
-        expect(Hydra::LDAP.connection).to receive(:get_operation_result).once.and_return(OpenStruct.new(code: 53, message: "Unwilling"))
+        expect(Hydra::LDAP.connection).to receive(:get_operation_result).once.and_return(OpenStruct.new(code: 53, message: 'Unwilling'))
         # get success the second run through which is two calls and one more in the main code
-        expect(Hydra::LDAP.connection).to receive(:get_operation_result).once.and_return(OpenStruct.new(code: 0, message: "sucess"))
+        expect(Hydra::LDAP.connection).to receive(:get_operation_result).once.and_return(OpenStruct.new(code: 0, message: 'sucess'))
       end
       #
-      it "returns true after failing and sleeping once" do
+      it 'returns true after failing and sleeping once' do
         expect(described_class).to receive(:sleep).with(1.0)
         result = described_class.directory_attributes('cam156', ['cn'])
         expect(result.first['cn']).to eq(cn)
       end
     end
-
   end
 
   describe '#query_ldap_by_name_or_id' do
@@ -66,9 +65,9 @@ describe LdapDisambiguate::LdapUser, type: :model do
       allow(Hydra::LDAP.connection).to receive(:get_operation_result).and_return(OpenStruct.new(code: 0, message: 'Success')) if in_travis
     end
     it 'returns a list or people' do
-      expect(described_class.query_ldap_by_name_or_id('cam')).to include({:id=>"cam156", :text=>"CAROLYN A COLE (cam156)"},
-                                                                         {:id=>"gmc8", :text=>"GABRIELA M CAMPUSANO (gmc8)"},
-                                                                         {:id=>"jtc152", :text=>"J TODD CAMPBELL (jtc152)"})
+      expect(described_class.query_ldap_by_name_or_id('cam')).to include({ id: 'cam156', text: 'CAROLYN A COLE (cam156)' },
+                                                                         { id: 'gmc8', text: 'GABRIELA M CAMPUSANO (gmc8)' },
+                                                                         id: 'jtc152', text: 'J TODD CAMPBELL (jtc152)')
     end
   end
 
@@ -77,8 +76,8 @@ describe LdapDisambiguate::LdapUser, type: :model do
       let(:first_name) { 'Carolyn Ann' }
       let(:last_name) { 'Cole' }
       let(:first_name_parts) { %w(Carolyn Ann) }
-      let(:filter) { Net::LDAP::Filter.construct("(& (& (givenname=#{first_name_parts[0]}*) (givenname=*#{first_name_parts[1]}*) (sn=#{last_name})) (| (eduPersonPrimaryAffiliation=STUDENT) (eduPersonPrimaryAffiliation=FACULTY) (eduPersonPrimaryAffiliation=STAFF) (eduPersonPrimaryAffiliation=EMPLOYEE) (eduPersonPrimaryAffiliation=RETIREE) (eduPersonPrimaryAffiliation=EMERITUS) (eduPersonPrimaryAffiliation=MEMBER)))))") }
-      let(:attrs) {  %w(uid givenname sn mail eduPersonPrimaryAffiliation) }
+      let(:filter) { Net::LDAP::Filter.construct("(& (& (givenname=#{first_name_parts[0]}*) (givenname=* #{first_name_parts[1]}*) (sn=#{last_name})) (| (eduPersonPrimaryAffiliation=STUDENT) (eduPersonPrimaryAffiliation=FACULTY) (eduPersonPrimaryAffiliation=STAFF) (eduPersonPrimaryAffiliation=EMPLOYEE) (eduPersonPrimaryAffiliation=RETIREE) (eduPersonPrimaryAffiliation=EMERITUS) (eduPersonPrimaryAffiliation=MEMBER)))))") }
+      let(:attrs) { [:uid, :givenname, :sn, :mail, :eduPersonPrimaryAffiliation] }
 
       let(:results) do
         [
