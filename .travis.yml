@@ -1,0 +1,10 @@
+language: ruby
+cache: bundler
+rvm:
+  - 2.3.0
+before_script:
+  - "cp config/hydra-ldap.yml.sample config/hydra-ldap.yml"
+notifications:
+  irc:
+    channels:
+      - "irc.freenode.org#scholarsphere"

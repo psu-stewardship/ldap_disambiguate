@@ -13,7 +13,7 @@ describe LdapDisambiguate::Name do
     let(:name) { 'Thompson, Britta M' }
     let(:response) { format_name_response('bmt13', 'BRITTA MAY', 'THOMPSON', 'FACULTY') }
     it 'finds the user' do
-      expect_ldap(:query_ldap_by_name, response, 'Britta M', 'Thompson')
+      expect_ldap(:query_ldap_by_name, response, 'Britta M', 'Thompson', ldap_fields)
       expect(subject.count).to eq(1)
     end
   end
@@ -33,8 +33,8 @@ describe LdapDisambiguate::Name do
     let(:response1) { format_name_response('cam156', 'CAROLYN A', 'COLE') }
     let(:response2) { format_name_response('agw13', 'ADAM GARNER', 'WEAD') }
     it 'finds both users' do
-      expect_ldap(:query_ldap_by_name, response1, 'Carolyn', 'Cole')
-      expect_ldap(:query_ldap_by_name, response2, 'Adam', 'Wead')
+      expect_ldap(:query_ldap_by_name, response1, 'Carolyn', 'Cole', ldap_fields)
+      expect_ldap(:query_ldap_by_name, response2, 'Adam', 'Wead', ldap_fields)
       is_expected.to eq([response1.first, response2.first])
     end
   end
@@ -43,7 +43,7 @@ describe LdapDisambiguate::Name do
     let(:name) { 'A.S. Ostrowski' }
     let(:response) { format_name_response('aso118', 'ALEX S', 'OSTROWSKI', 'STUDENT') }
     it 'finds the user' do
-      expect_ldap(:query_ldap_by_name, response, 'A S', 'Ostrowski')
+      expect_ldap(:query_ldap_by_name, response, 'A S', 'Ostrowski', ldap_fields)
       is_expected.to eq(response)
     end
   end
@@ -55,7 +55,7 @@ describe LdapDisambiguate::Name do
        format_name_response('jod1', 'Jane Other', 'Doe').first]
     end
     it 'finds the user' do
-      expect_ldap(:query_ldap_by_name, response, 'Jane', 'Doe')
+      expect_ldap(:query_ldap_by_name, response, 'Jane', 'Doe', ldap_fields)
       is_expected.to eq([])
     end
   end
@@ -64,9 +64,9 @@ describe LdapDisambiguate::Name do
     let(:name) { 'Nicole Seger, MSN, RN, CPN' }
     let(:response) { format_name_response('nas150', 'NICOLE A', 'SEGER') }
     it 'finds the user' do
-      expect_ldap(:query_ldap_by_name, [], 'MSN', 'Nicole Seger')
-      expect_ldap(:query_ldap_by_name, [], 'Nicole Seger, MSN,', 'RN, CPN')
-      expect_ldap(:query_ldap_by_name, response, 'Nicole', 'Seger')
+      expect_ldap(:query_ldap_by_name, [], 'MSN', 'Nicole Seger', ldap_fields)
+      expect_ldap(:query_ldap_by_name, [], 'Nicole Seger, MSN,', 'RN, CPN', ldap_fields)
+      expect_ldap(:query_ldap_by_name, response, 'Nicole', 'Seger', ldap_fields)
       is_expected.to eq(response)
     end
   end
@@ -75,8 +75,8 @@ describe LdapDisambiguate::Name do
     let(:name) { 'MSN Deb Cardenas' }
     let(:response) { format_name_response('dac40', 'DEBORAH A.', 'CARDENAS') }
     it 'finds the user' do
-      expect_ldap(:query_ldap_by_name, [], 'MSN Deb', 'Cardenas')
-      expect_ldap(:query_ldap_by_name, response, 'Deb', 'Cardenas')
+      expect_ldap(:query_ldap_by_name, [], 'MSN Deb', 'Cardenas', ldap_fields)
+      expect_ldap(:query_ldap_by_name, response, 'Deb', 'Cardenas', ldap_fields)
       is_expected.to eq(response)
     end
   end
@@ -85,7 +85,7 @@ describe LdapDisambiguate::Name do
     let(:name) { 'Patricia Hswe *' }
     let(:response) { format_name_response('pmh22', 'PATRICIA M', 'HSWE', 'FACULTY') }
     it 'cleans the name' do
-      expect_ldap(:query_ldap_by_name, response, 'Patricia', 'Hswe')
+      expect_ldap(:query_ldap_by_name, response, 'Patricia', 'Hswe', ldap_fields)
       is_expected.to eq(response)
     end
   end
@@ -94,7 +94,7 @@ describe LdapDisambiguate::Name do
     let(:name) { "Anthony R. D'Augelli" }
     let(:response) { format_name_response('ard', 'ANTHONY RAYMOND', "D'AUGELLI", 'FACULTY') }
     it 'finds the user' do
-      expect_ldap(:query_ldap_by_name, response, 'Anthony R', "D'Augelli")
+      expect_ldap(:query_ldap_by_name, response, 'Anthony R', "D'Augelli", ldap_fields)
       is_expected.to eq(response)
     end
   end
@@ -103,9 +103,9 @@ describe LdapDisambiguate::Name do
     let(:name) { 'ALIDA HEATHER DOHN ROSS' }
     let(:response) { format_name_response('hdr10', 'ALIDA HEATHER', 'DOHN ROSS') }
     it 'finds the user' do
-      expect_ldap(:query_ldap_by_name, [], 'ALIDA HEATHER DOHN', 'ROSS')
-      expect_ldap(:query_ldap_by_name, [], 'DOHN', 'ROSS')
-      expect_ldap(:query_ldap_by_name, response, 'ALIDA HEATHER', 'DOHN ROSS')
+      expect_ldap(:query_ldap_by_name, [], 'ALIDA HEATHER DOHN', 'ROSS', ldap_fields)
+      expect_ldap(:query_ldap_by_name, [], 'DOHN', 'ROSS', ldap_fields)
+      expect_ldap(:query_ldap_by_name, response, 'ALIDA HEATHER', 'DOHN ROSS', ldap_fields)
       is_expected.to eq(response)
     end
   end
@@ -114,7 +114,7 @@ describe LdapDisambiguate::Name do
     let(:name) { 'Cole, Carolyn (Kubicki Group)' }
     let(:response) { format_name_response('cam156', 'CAROLYN A', 'COLE') }
     it 'cleans the name' do
-      expect_ldap(:query_ldap_by_name, response, 'Carolyn', 'Cole')
+      expect_ldap(:query_ldap_by_name, response, 'Carolyn', 'Cole', ldap_fields)
       is_expected.to eq(response)
     end
   end

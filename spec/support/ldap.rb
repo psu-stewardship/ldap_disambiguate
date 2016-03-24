@@ -18,6 +18,6 @@ def format_name_response(id, first_name, last_name, affiliation = 'STAFF')
      surname: last_name,
      email: "#{id}@psu.edu",
      affiliation: [affiliation],
-     displayname: "#{first_name} #{last_name}" }
+     displayname: ["#{first_name} #{last_name}"] }
   ]
 end
