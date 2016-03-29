@@ -17,13 +17,19 @@ module LdapDisambiguate
       def text_only_names(multi_name)
         results = []
         multi_name.split(/and|;/).each do |n|
-          n.gsub!(/\([^)]*\)/, '')
-          n.strip!
-          query_result = email_for_name(n)
-          query_result ||= title_after_name(n) # try again without the titles
-          results << query_result unless query_result.blank?
+          result = text_only_name(n)
+          results << result unless result.blank?
         end
         results
+      end
+
+      def text_only_name(name)
+        name = clean_name(name)
+        query_result = email_for_name(name)
+        query_result ||= title_after_name(name) # try again without the titles
+        return query_result
+      rescue MultipleUserError
+        return nil
       end
 
       # titles after the name that namae had trouble parsing
@@ -54,19 +60,14 @@ module LdapDisambiguate
         result = try_name(parsed.given, parsed.family)
         result ||= title_before_name(parsed)
         result ||= two_words_in_last_name(text_name)
-
-        logger.error("got zero for #{text_name}") if result.nil?
         result
       end
 
       def try_name(given, family)
         return nil if family.blank?
         possible_users = LdapUser.query_ldap_by_name(given, family, ldap_attrs)
-        return nil if possible_users.count == 0
-        if possible_users.count > 1
-          logger.error("Returning #{possible_users.first} but got more than name for given name #{given} and family name #{name}")
-          return nil
-        end
+        return nil if possible_users.blank? || possible_users.count == 0
+        raise(MultipleUserError, "too name results for #{given} #{family}") if possible_users.count > 1
         possible_users.first
       end
 
@@ -90,11 +91,15 @@ module LdapDisambiguate
 
       def two_words_in_last_name(text_name)
         result = nil
-        if text_name.count(' ') > 2
+        if text_name.strip.count(' ') > 2
           parts = name_parts(text_name, 2)
           result = try_name(parts[:given], parts[:family])
         end
         result
+      end
+
+      def clean_name(name)
+        name.gsub(/\([^)]*\)/, '').strip
       end
   end
   end

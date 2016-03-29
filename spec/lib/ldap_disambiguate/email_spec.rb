@@ -4,16 +4,23 @@ require 'spec_helper'
 describe LdapDisambiguate::Email do
   let(:ldap_fields) { [:uid, :givenname, :sn, :mail, :eduPersonPrimaryAffiliation, :displayname] }
   subject { described_class.disambiguate(name) }
-  before do
-    allow(LdapDisambiguate::LdapUser).to receive(:directory_attributes).with(name, ldap_fields).and_return([]) if in_travis
-    expect(LdapDisambiguate::LdapUser).not_to receive(:get_users) if in_travis
-  end
 
   context 'when the email is not their id' do
-    let(:name) { 'Barbara I. Dewey a bdewey@psu.edu' }
-    it 'does not find the user' do
-      expect_ldap(:directory_attributes, [], 'bdewey', ldap_fields)
-      is_expected.to eq([{ id: '', given_name: '', surname: '', email: 'bdewey@psu.edu', affiliation: [], displayname: '' }])
+    let(:name) { 'Zuleima Karpyn & Turgay Ertekin ZKarpyn@psu.edu' }
+    let(:response) { format_name_response('ztk101', 'ZULEIMA T', 'KARPYN', 'FACULTY') }
+    it 'finds the user via email' do
+      expect_ldap(:directory_attributes, [], 'ZKarpyn', ldap_fields)
+      expect_ldap(:query_ldap_by_mail, response, 'ZKarpyn@psu.edu', ldap_fields)
+      is_expected.to eq([{ id: "ztk101", given_name: "ZULEIMA T", surname: "KARPYN", email: "ztk101@psu.edu", affiliation: ["FACULTY"], displayname: "ZULEIMA T KARPYN" }])
+    end
+  end
+
+  context 'when the email is not their id and not in ldap' do
+    let(:name) { 'Zuleima Karpyn & Turgay Ertekin ZKarpyn2@psu.edu' }
+    it 'finds the user via email' do
+      expect_ldap(:directory_attributes, [], 'ZKarpyn2', ldap_fields)
+      expect_ldap(:query_ldap_by_mail, [], 'ZKarpyn2@psu.edu', ldap_fields)
+      is_expected.to eq([{ id: '', given_name: '', surname: '', email: "ZKarpyn2@psu.edu", affiliation: [], displayname: "" }])
     end
   end
 
@@ -34,6 +41,16 @@ describe LdapDisambiguate::Email do
       expect_ldap(:directory_attributes, response1, 'sjs230', ldap_fields)
       expect_ldap(:directory_attributes, response2, 'cam156', ldap_fields)
       expect(subject.count).to eq(2)
+    end
+  end
+
+  context 'when the email contains a name too' do
+    let(:name) { '"Richard Stedman" <RStedman@psu.edu>' }
+    it 'finds the user' do
+      expect_ldap(:directory_attributes, [], 'RStedman', ldap_fields)
+      expect_ldap(:query_ldap_by_mail, [], 'RStedman@psu.edu', ldap_fields)
+      expect(subject.count).to eq(1)
+      is_expected.to eq([{ id: '', given_name: '', surname: '', email: "RStedman@psu.edu", affiliation: [], displayname: "" }])
     end
   end
 end

@@ -6,7 +6,6 @@ describe LdapDisambiguate::Name do
   subject { described_class.disambiguate(name) }
   before do
     allow(LdapDisambiguate::LdapUser).to receive(:directory_attributes).with(name, ldap_fields).and_return([]) if in_travis
-    expect(LdapDisambiguate::LdapUser).not_to receive(:get_users) if in_travis
   end
 
   context 'when we have a normal name' do
@@ -20,7 +19,11 @@ describe LdapDisambiguate::Name do
 
   context 'when we have an id' do
     let(:name) { 'cam156' }
-    let(:response) { format_name_response('cam156', 'CAROLYN A', 'COLE') }
+    let(:response) do
+      resp = format_name_response('cam156', 'CAROLYN A', 'COLE')
+      resp[0][:displayname] = [resp[0][:displayname]]
+      resp
+    end
     it 'finds the ids' do
       expect_ldap(:directory_attributes, response, name, ldap_fields)
       expect(LdapDisambiguate::LdapUser).not_to receive(:query_ldap_by_name)
@@ -49,13 +52,13 @@ describe LdapDisambiguate::Name do
   end
 
   context 'when we have multiple results' do
-    let(:name) { 'Jane Doe' }
+    let(:name) { 'C Cole' }
     let(:response) do
-      [format_name_response('jjd1', 'Jane', 'Doe').first,
-       format_name_response('jod1', 'Jane Other', 'Doe').first]
+      [format_name_response('cac13', 'CHARLES ANDREW', 'COLE').first,
+       format_name_response('cam156', 'CAROLYN A', 'COLE').first]
     end
     it 'finds the user' do
-      expect_ldap(:query_ldap_by_name, response, 'Jane', 'Doe', ldap_fields)
+      expect_ldap(:query_ldap_by_name, response, 'C', 'Cole', ldap_fields)
       is_expected.to eq([])
     end
   end
@@ -122,9 +125,13 @@ describe LdapDisambiguate::Name do
   context 'when the user has an email in thier name' do
     context 'when the email is not their id' do
       let(:name) { 'Barbara I. Dewey a bdewey@psu.edu' }
+      let(:response) { format_name_response('bid1', 'BARBARA IRENE', 'DEWEY') }
       it 'does not find the user' do
+        expect_ldap(:directory_attributes, [], 'Barbara I. Dewey a bdewey@psu.edu', ldap_fields)
         expect_ldap(:directory_attributes, [], 'bdewey', ldap_fields)
-        is_expected.to eq([{ id: '', given_name: '', surname: '', email: 'bdewey@psu.edu', affiliation: [], displayname: '' }])
+        expect_ldap(:query_ldap_by_mail, response, 'bdewey@psu.edu', ldap_fields)
+        is_expected.to eq([{ id: "bid1", given_name: "BARBARA IRENE", surname: "DEWEY", email: "bid1@psu.edu", affiliation: ["STAFF"], displayname: "BARBARA IRENE DEWEY" }])
+        # is_expected.to eq([{ id: '', given_name: '', surname: '', email: 'bdewey@psu.edu', affiliation: [], displayname: '' }])
       end
     end
 
@@ -132,6 +139,7 @@ describe LdapDisambiguate::Name do
       let(:name) { 'sjs230@psu.edu' }
       let(:response) { format_ldap_response('sjs230', 'SARAH J', 'STAGER') }
       it 'finds the user' do
+        expect_ldap(:directory_attributes, [], 'sjs230@psu.edu', ldap_fields)
         expect_ldap(:directory_attributes, response, 'sjs230', ldap_fields)
         expect(subject.count).to eq(1)
       end
@@ -142,9 +150,26 @@ describe LdapDisambiguate::Name do
       let(:response1) { format_ldap_response('sjs230', 'SARAH J', 'STAGER') }
       let(:response2) { format_ldap_response('cam156', 'CAROLYN A', 'cole') }
       it 'finds the user' do
+        expect_ldap(:directory_attributes, [], 'sjs230@psu.edu, cam156@psu.edu', ldap_fields)
         expect_ldap(:directory_attributes, response1, 'sjs230', ldap_fields)
         expect_ldap(:directory_attributes, response2, 'cam156', ldap_fields)
         expect(subject.count).to eq(2)
+      end
+    end
+
+    context "when name is weird" do
+      let(:name) { 'Brandon Hunt (thesis: Keith Wilson)' }
+      it 'it does not error' do
+        expect(subject.count).to eq(0)
+      end
+    end
+
+    context "when name is weird" do
+      let(:name) { "Kenan Ünlü" }
+      it 'it does not error' do
+        expect_ldap(:directory_attributes, [], 'Kenan Ünlü', ldap_fields)
+        expect_ldap(:query_ldap_by_name, [], 'Kenan', 'nl', ldap_fields)
+        expect(subject.count).to eq(0)
       end
     end
   end

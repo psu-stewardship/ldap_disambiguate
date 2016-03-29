@@ -6,16 +6,14 @@ module LdapDisambiguate
     class << self
       def directory_attributes(login, attrs = [])
         filter = Net::LDAP::Filter.eq('uid', login)
-        get_ldap_response(:get_user, filter, attrs)
+        result = get_ldap_response(filter, attrs)
+        format_users(result, attrs)
       end
 
-      def query_ldap_by_name_or_id(id_or_name_part)
-        filter = Net::LDAP::Filter.construct("(& (| (uid=#{id_or_name_part}* ) (givenname=#{id_or_name_part}*) (sn=#{id_or_name_part}*)) #{person_filter})")
-        users  = get_ldap_response(:get_user, filter, %w(uid displayname))
-
-        # handle the issue that searching with a few letters returns more than 1000 items wich causes an error in the system
-        users = get_user_by_partial_id(id_or_name_part) if size_limit_exceeded?
-        users.map { |u| { id: u[:uid].first, text: "#{u[:displayname].first} (#{u[:uid].first})" } }
+      def query_ldap_by_mail(email, attrs = [])
+        filter = Net::LDAP::Filter.construct("(& (| (psmailid=#{email} ) (mail=#{email}) (psmailbox=#{email}) (edupersonprincipalname=#{email})) #{person_filter})")
+        users  = get_users(filter, attrs)
+        format_users(users, attrs)
       end
 
       def query_ldap_by_name(given_name, surname, attrs = [])
@@ -32,12 +30,26 @@ module LdapDisambiguate
 
       def get_users(name_filter, attrs = [])
         attrs = (attrs + default_attributes).uniq
-        person_filter = '(| (eduPersonPrimaryAffiliation=STUDENT) (eduPersonPrimaryAffiliation=FACULTY) (eduPersonPrimaryAffiliation=STAFF) (eduPersonPrimaryAffiliation=EMPLOYEE) (eduPersonPrimaryAffiliation=RETIREE) (eduPersonPrimaryAffiliation=EMERITUS) (eduPersonPrimaryAffiliation=MEMBER)))'
         filter = Net::LDAP::Filter.construct("(& (& #{name_filter}) #{person_filter})")
-        get_ldap_response(:get_user, filter, attrs)
+        get_ldap_response(filter, attrs)
+      end
+
+      def results_hash(opts)
+        {
+          id:          fetch(opts, :uid).first,
+          given_name:  fetch(opts, :givenname).first,
+          surname:     fetch(opts, :sn).first,
+          email:       fetch(opts, :mail).first,
+          affiliation: fetch(opts, :eduPersonPrimaryAffiliation, []),
+          displayname: fetch(opts, :displayname).first
+        }
       end
 
       private
+
+      def fetch(opts, key, default = [''])
+        opts[key].blank? ? default : opts[key]
+      end
 
       def format_users(users, attrs)
         user_attrs = attrs - default_attributes
@@ -45,20 +57,24 @@ module LdapDisambiguate
       end
 
       def format_user(user, extra_attrs)
-        hash = { id: user[:uid].first, given_name: user[:givenname].first, surname: user[:sn].first, email: user[:mail].first, affiliation: user[:eduPersonPrimaryAffiliation] }
+        hash = results_hash(user)
         extra_attrs.each { |attr| hash[attr] = user[attr].first }
         hash
       end
 
-      def get_user_by_partial_id(_id)
-        filter = Net::LDAP::Filter.construct("(& (uid=#{id_or_name_part}* ) #{person_filter})")
-        get_ldap_response(:get_user, filter, %w(uid displayname))
+      def get_user_by_partial_id(id)
+        filter = Net::LDAP::Filter.construct("(& (uid=#{id}* ) #{person_filter})")
+        get_ldap_response(filter, %w(uid displayname))
       end
 
-      def get_ldap_response(_method, filter, attributes)
+      def get_ldap_response(filter, attributes)
+        return cache[filter.to_s] if cache.key?(filter.to_s)
         tries.times.each do
           result = Hydra::LDAP.get_user(filter, attributes)
-          return result unless unwilling?
+          unless unwilling?
+            cache[filter.to_s] = result
+            return result
+          end
           sleep(sleep_time)
         end
         nil
@@ -82,7 +98,7 @@ module LdapDisambiguate
       end
 
       def person_filter
-        '(| (eduPersonPrimaryAffiliation=STUDENT) (eduPersonPrimaryAffiliation=FACULTY) (eduPersonPrimaryAffiliation=STAFF) (eduPersonPrimaryAffiliation=EMPLOYEE))))'
+        '(| (eduPersonPrimaryAffiliation=STUDENT) (eduPersonPrimaryAffiliation=FACULTY) (eduPersonPrimaryAffiliation=STAFF) (eduPersonPrimaryAffiliation=EMPLOYEE) (eduPersonPrimaryAffiliation=RETIREE) (eduPersonPrimaryAffiliation=EMERITUS) (eduPersonPrimaryAffiliation=MEMBER)))'
       end
 
       def name_filters(first_name, middle_name, surname)
@@ -95,7 +111,11 @@ module LdapDisambiguate
       end
 
       def default_attributes
-        [:uid, :givenname, :sn, :mail, :eduPersonPrimaryAffiliation]
+        [:uid, :givenname, :sn, :mail, :eduPersonPrimaryAffiliation, :displayname]
+      end
+
+      def cache
+        @cache ||= {}
       end
     end
   end

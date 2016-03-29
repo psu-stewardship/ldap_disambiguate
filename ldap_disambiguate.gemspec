@@ -24,6 +24,7 @@ Gem::Specification.new do |s|
   s.add_dependency 'hydra-ldap'
   s.add_dependency 'net-ldap', '0.13.0'
   s.add_dependency 'namae', '0.9.3'
+  s.add_dependency 'mail', '~> 2.6'
 
   s.add_development_dependency 'bundler', '~> 1.11'
   s.add_development_dependency 'rake', '~> 10.0'

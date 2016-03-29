@@ -4,6 +4,7 @@ require 'net-ldap'
 require 'hydra-ldap'
 require 'namae'
 require 'logger'
+require 'mail'
 
 def logger
   Logger.new(STDOUT)
@@ -19,4 +20,5 @@ module LdapDisambiguate
   autoload :Name, 'ldap_disambiguate/name'
   autoload :Email, 'ldap_disambiguate/email'
   autoload :LdapUser, 'ldap_disambiguate/ldap_user'
+  autoload :MultipleUserError, 'ldap_disambiguate/multiple_user_error'
 end
