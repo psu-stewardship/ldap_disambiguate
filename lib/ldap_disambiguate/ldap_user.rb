@@ -106,7 +106,6 @@ module LdapDisambiguate
         filters << "(givenname=#{first_name}*) (givenname=* #{middle_name}*) (sn=#{surname})" unless middle_name.blank?
         filters << "(givenname=#{first_name}) (sn=#{surname})"
         filters << "(givenname=#{first_name}*) (sn=#{surname})"
-        filters << "(givenname=*#{first_name}*) (sn=#{surname})"
         filters
       end
 

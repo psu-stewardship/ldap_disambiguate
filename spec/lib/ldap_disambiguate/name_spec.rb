@@ -44,7 +44,7 @@ describe LdapDisambiguate::Name do
 
   context 'when we have initials for first name' do
     let(:name) { 'A.S. Ostrowski' }
-    let(:response) { format_name_response('aso118', 'ALEX S', 'OSTROWSKI', 'STUDENT') }
+    let(:response) { format_name_response('aso118', 'ALEX S', 'OSTROWSKI', 'MEMBER') }
     it 'finds the user' do
       expect_ldap(:query_ldap_by_name, response, 'A S', 'Ostrowski', ldap_fields)
       is_expected.to eq(response)
@@ -169,6 +169,13 @@ describe LdapDisambiguate::Name do
       it 'it does not error' do
         expect_ldap(:directory_attributes, [], 'Kenan Ünlü', ldap_fields)
         expect_ldap(:query_ldap_by_name, [], 'Kenan', 'nl', ldap_fields)
+        expect(subject.count).to eq(0)
+      end
+    end
+
+    context "when name is Shih" do
+      let(:name) { "Dr. Patrick C. Shih" }
+      it 'it does not error' do
         expect(subject.count).to eq(0)
       end
     end
