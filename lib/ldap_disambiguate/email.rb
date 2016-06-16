@@ -6,7 +6,7 @@ module LdapDisambiguate
   class Email < Base
     class << self
       def disambiguate(email)
-        return unless email.include?('@')
+        return unless email.include?('@psu.edu')
         email_in_name(email)
       end
 
