@@ -8,8 +8,7 @@ def format_ldap_response(id, first_name, last_name, affiliation = 'STAFF')
      givenname: [first_name],
      sn: [last_name],
      mail: ["#{id}@psu.edu"],
-     eduPersonPrimaryAffiliation: [affiliation]
-   }]
+     eduPersonPrimaryAffiliation: [affiliation] }]
 end
 
 def format_name_response(id, first_name, last_name, affiliation = 'STAFF')
@@ -18,6 +17,5 @@ def format_name_response(id, first_name, last_name, affiliation = 'STAFF')
      surname: last_name,
      email: "#{id}@psu.edu",
      affiliation: [affiliation],
-     displayname: "#{first_name} #{last_name}" }
-  ]
+     displayname: "#{first_name} #{last_name}" }]
 end
