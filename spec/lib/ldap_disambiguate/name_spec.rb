@@ -173,10 +173,10 @@ describe LdapDisambiguate::Name do
       end
     end
 
-    context "when name is Shih" do
+    context "when name is Shih", unless: in_travis do
       let(:name) { "Dr. Patrick C. Shih" }
       it 'it does not error' do
-        expect(subject.count).to eq(0)
+        expect_ldap(subject.count).to eq(0)
       end
     end
   end
