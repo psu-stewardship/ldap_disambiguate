@@ -47,7 +47,7 @@ describe LdapDisambiguate::LdapUser, type: :model do
       let(:first_name) { 'Carolyn Ann' }
       let(:last_name) { 'Cole' }
       let(:first_name_parts) { %w(Carolyn Ann) }
-      let(:filter) { Net::LDAP::Filter.construct("(& (& (givenname=#{first_name_parts[0]}*) (givenname=* #{first_name_parts[1]}*) (sn=#{last_name})) (| (eduPersonPrimaryAffiliation=STUDENT) (eduPersonPrimaryAffiliation=FACULTY) (eduPersonPrimaryAffiliation=STAFF) (eduPersonPrimaryAffiliation=EMPLOYEE) (eduPersonPrimaryAffiliation=RETIREE) (eduPersonPrimaryAffiliation=EMERITUS) (eduPersonPrimaryAffiliation=MEMBER)))))") }
+      let(:filter) { Net::LDAP::Filter.construct("(& (& (givenname=#{first_name_parts[0]} *) (givenname=* #{first_name_parts[1]}*) (sn=#{last_name})) (| (eduPersonPrimaryAffiliation=STUDENT) (eduPersonPrimaryAffiliation=FACULTY) (eduPersonPrimaryAffiliation=STAFF) (eduPersonPrimaryAffiliation=EMPLOYEE) (eduPersonPrimaryAffiliation=RETIREE) (eduPersonPrimaryAffiliation=EMERITUS) (eduPersonPrimaryAffiliation=MEMBER)))))") }
       let(:attrs) { [:uid, :givenname, :sn, :mail, :eduPersonPrimaryAffiliation, :displayname] }
 
       let(:results) do
