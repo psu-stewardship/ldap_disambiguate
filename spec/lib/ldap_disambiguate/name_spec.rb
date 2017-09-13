@@ -123,6 +123,15 @@ describe LdapDisambiguate::Name do
     end
   end
 
+  context 'when the user has and as part of their name' do
+    let(:name) { 'Amanda Ramcharan' }
+    let(:response) { format_name_response('amr418', 'AMANDA M', 'RAMCHARAN', 'FACULTY') }
+    it 'cleans the name' do
+      expect_ldap(:query_ldap_by_name, response, 'Amanda', 'Ramcharan', ldap_fields)
+      is_expected.to eq(response)
+    end
+  end
+
   context 'when the user has an email in thier name' do
     context 'when the email is not their id' do
       let(:name) { 'Barbara I. Dewey a bdewey@psu.edu' }
@@ -158,8 +167,8 @@ describe LdapDisambiguate::Name do
       end
     end
 
-    context "when name is weird" do
-      let(:name) { 'Brandon Hunt (thesis: Keith Wilson)' }
+    context "when name is weird", unless: in_travis do
+      let(:name) { 'Brendon Hunt (thesis: Keith Wilson)' }
       it 'it does not error' do
         expect(subject.count).to eq(0)
       end

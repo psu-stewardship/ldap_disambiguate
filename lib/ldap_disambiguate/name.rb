@@ -17,7 +17,7 @@ module LdapDisambiguate
 
       def text_only_names(multi_name)
         results = []
-        multi_name.split(/and|;/).each do |n|
+        multi_name.split(/ and |;/).each do |n|
           result = text_only_name(n)
           results << result unless result.blank?
         end
