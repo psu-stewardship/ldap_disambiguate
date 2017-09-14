@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 module LdapDisambiguate
   # This class provides an api for quering LDAP with different portions of the user's
   # information (name parts or id)
@@ -64,7 +65,7 @@ module LdapDisambiguate
 
       def get_user_by_partial_id(id)
         filter = Net::LDAP::Filter.construct("(& (uid=#{id}* ) #{person_filter})")
-        get_ldap_response(filter, %w(uid displayname))
+        get_ldap_response(filter, %w[uid displayname])
       end
 
       def get_ldap_response(filter, attributes)
@@ -103,14 +104,20 @@ module LdapDisambiguate
 
       def name_filters(first_name, middle_name, surname)
         filters = []
-        filters << "(givenname=#{first_name}*) (givenname=* #{middle_name}*) (sn=#{surname})" unless middle_name.blank?
+        if middle_name.blank?
+          filters << "(givenname=#{first_name}) (sn=#{surname})"
+          filters << "(givenname=#{first_name}*) (sn=#{surname})"
+        else
+          filters << "(givenname=#{first_name}*) (givenname=* #{middle_name}*) (sn=#{surname})"
+          middle_initial = middle_name[0]
+          filters << "(givenname=#{first_name}* #{middle_initial}*) (sn=#{surname})"
+        end
         filters << "(givenname=#{first_name}) (sn=#{surname})"
-        filters << "(givenname=#{first_name}*) (sn=#{surname})"
         filters
       end
 
       def default_attributes
-        [:uid, :givenname, :sn, :mail, :eduPersonPrimaryAffiliation, :displayname]
+        %i[uid givenname sn mail eduPersonPrimaryAffiliation displayname]
       end
 
       def cache

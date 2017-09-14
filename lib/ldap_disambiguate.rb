@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 # require 'rspec/its'
 require 'net-ldap'
 require 'hydra-ldap'

@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 module LdapDisambiguate
   # This class allows you to use LDAP to disambiguate a text name
   #
@@ -12,7 +13,7 @@ module LdapDisambiguate
       end
 
       def ldap_attrs
-        [:uid, :givenname, :sn, :mail, :eduPersonPrimaryAffiliation, :displayname]
+        %i[uid givenname sn mail eduPersonPrimaryAffiliation displayname]
       end
     end
   end

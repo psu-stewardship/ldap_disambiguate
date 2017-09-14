@@ -1,8 +1,9 @@
 # frozen_string_literal: true
+
 require 'spec_helper'
 
 describe LdapDisambiguate::Name do
-  let(:ldap_fields) { [:uid, :givenname, :sn, :mail, :eduPersonPrimaryAffiliation, :displayname] }
+  let(:ldap_fields) { %i[uid givenname sn mail eduPersonPrimaryAffiliation displayname] }
   subject { described_class.disambiguate(name) }
   before do
     allow(LdapDisambiguate::LdapUser).to receive(:directory_attributes).with(name, ldap_fields).and_return([]) if in_travis
@@ -33,7 +34,7 @@ describe LdapDisambiguate::Name do
 
   context 'when we have multiple combined with an and' do
     let(:name) { 'Carolyn Cole and Adam Wead' }
-    let(:response1) { format_name_response('cam156', 'CAROLYN A', 'COLE') }
+    let(:response1) { format_name_response('cam156', 'CAROLYN ANN', 'COLE') }
     let(:response2) { format_name_response('agw13', 'ADAM GARNER', 'WEAD') }
     it 'finds both users' do
       expect_ldap(:query_ldap_by_name, response1, 'Carolyn', 'Cole', ldap_fields)
@@ -43,10 +44,10 @@ describe LdapDisambiguate::Name do
   end
 
   context 'when we have initials for first name' do
-    let(:name) { 'A.S. Ostrowski' }
-    let(:response) { format_name_response('aso118', 'ALEX S', 'OSTROWSKI', 'MEMBER') }
+    let(:name) { 'A.J. Ostrowski' }
+    let(:response) { format_name_response('ajo5254', 'AMANDA JEAN', 'OSTROWSKI', 'STUDENT') }
     it 'finds the user' do
-      expect_ldap(:query_ldap_by_name, response, 'A S', 'Ostrowski', ldap_fields)
+      expect_ldap(:query_ldap_by_name, response, 'A J', 'Ostrowski', ldap_fields)
       is_expected.to eq(response)
     end
   end
@@ -85,17 +86,17 @@ describe LdapDisambiguate::Name do
   end
 
   context 'when the user has strange characters' do
-    let(:name) { 'Patricia Hswe *' }
-    let(:response) { format_name_response('pmh22', 'PATRICIA M', 'HSWE', 'FACULTY') }
+    let(:name) { 'Carolyn Cole *' }
+    let(:response) { format_name_response('cam156', 'CAROLYN ANN', 'COLE', 'STAFF') }
     it 'cleans the name' do
-      expect_ldap(:query_ldap_by_name, response, 'Patricia', 'Hswe', ldap_fields)
+      expect_ldap(:query_ldap_by_name, response, 'Carolyn', 'Cole', ldap_fields)
       is_expected.to eq(response)
     end
   end
 
   context 'when the user has an apostrophy' do
     let(:name) { "Anthony R. D'Augelli" }
-    let(:response) { format_name_response('ard', 'ANTHONY RAYMOND', "D'AUGELLI", 'FACULTY') }
+    let(:response) { format_name_response('ard', 'ANTHONY RAYMOND', "D'AUGELLI", 'EMERITUS') }
     it 'finds the user' do
       expect_ldap(:query_ldap_by_name, response, 'Anthony R', "D'Augelli", ldap_fields)
       is_expected.to eq(response)
@@ -115,7 +116,7 @@ describe LdapDisambiguate::Name do
 
   context 'when the user has additional information' do
     let(:name) { 'Cole, Carolyn (Kubicki Group)' }
-    let(:response) { format_name_response('cam156', 'CAROLYN A', 'COLE') }
+    let(:response) { format_name_response('cam156', 'CAROLYN ANN', 'COLE') }
     it 'cleans the name' do
       expect_ldap(:query_ldap_by_name, response, 'Carolyn', 'Cole', ldap_fields)
       is_expected.to eq(response)
@@ -176,7 +177,8 @@ describe LdapDisambiguate::Name do
     context "when name is Shih", unless: in_travis do
       let(:name) { "Dr. Patrick C. Shih" }
       it 'it does not error' do
-        expect_ldap(subject.count).to eq(0)
+        puts subject
+        expect(subject.count).to eq(0)
       end
     end
   end

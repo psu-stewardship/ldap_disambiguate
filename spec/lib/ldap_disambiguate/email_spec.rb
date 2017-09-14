@@ -1,8 +1,9 @@
 # frozen_string_literal: true
+
 require 'spec_helper'
 
 describe LdapDisambiguate::Email do
-  let(:ldap_fields) { [:uid, :givenname, :sn, :mail, :eduPersonPrimaryAffiliation, :displayname] }
+  let(:ldap_fields) { %i[uid givenname sn mail eduPersonPrimaryAffiliation displayname] }
   subject { described_class.disambiguate(name) }
 
   context 'when the email is not their id' do

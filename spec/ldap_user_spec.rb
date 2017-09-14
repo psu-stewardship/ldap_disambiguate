@@ -1,14 +1,15 @@
 # frozen_string_literal: true
+
 require 'spec_helper'
 
 describe LdapDisambiguate::LdapUser, type: :model do
   describe '#directory_attributes' do
-    let(:cn) { 'CAROLYN A COLE' }
-    let(:dn) { ['CAROLYN A COLE'] }
+    let(:cn) { 'CAROLYN ANN COLE' }
+    let(:dn) { ['CAROLYN ANN COLE'] }
     let(:entry) do
       entry = Net::LDAP::Entry.new
       entry['dn'] = ['uid=cam156,dc=psu,edu']
-      entry['cn'] = ['CAROLYN A COLE']
+      entry['cn'] = ['CAROLYN ANN COLE']
       entry
     end
     context 'LDAP behaves' do
@@ -46,9 +47,9 @@ describe LdapDisambiguate::LdapUser, type: :model do
     context 'when known user' do
       let(:first_name) { 'Carolyn Ann' }
       let(:last_name) { 'Cole' }
-      let(:first_name_parts) { %w(Carolyn Ann) }
+      let(:first_name_parts) { %w[Carolyn Ann] }
       let(:filter) { Net::LDAP::Filter.construct("(& (& (givenname=#{first_name_parts[0]}*) (givenname=* #{first_name_parts[1]}*) (sn=#{last_name})) (| (eduPersonPrimaryAffiliation=STUDENT) (eduPersonPrimaryAffiliation=FACULTY) (eduPersonPrimaryAffiliation=STAFF) (eduPersonPrimaryAffiliation=EMPLOYEE) (eduPersonPrimaryAffiliation=RETIREE) (eduPersonPrimaryAffiliation=EMERITUS) (eduPersonPrimaryAffiliation=MEMBER)))))") }
-      let(:attrs) { [:uid, :givenname, :sn, :mail, :eduPersonPrimaryAffiliation, :displayname] }
+      let(:attrs) { %i[uid givenname sn mail eduPersonPrimaryAffiliation displayname] }
 
       let(:results) do
         [
