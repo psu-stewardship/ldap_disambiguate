@@ -7,6 +7,7 @@ describe LdapDisambiguate::Name do
   subject { described_class.disambiguate(name) }
   before do
     allow(LdapDisambiguate::LdapUser).to receive(:directory_attributes).with(name, ldap_fields).and_return([]) if in_travis
+    described_class.clear_cache
   end
 
   context 'when we have a normal name' do

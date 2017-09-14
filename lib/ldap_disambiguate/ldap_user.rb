@@ -18,7 +18,7 @@ module LdapDisambiguate
       end
 
       def query_ldap_by_name(given_name, surname, attrs = [])
-        return if given_name.blank? # this method only work if we have a first name to play with
+        return [] if given_name.blank? # this method only work if we have a first name to play with
 
         first_names = given_name.split(/[\s.]+/)
         users = []
