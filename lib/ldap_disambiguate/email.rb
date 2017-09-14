@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 module LdapDisambiguate
   # This class allows you to use LDAP to extract user information
   #  from an email or list of emails
@@ -14,7 +15,7 @@ module LdapDisambiguate
 
       def email_in_name(email_list)
         parts = email_list.split(' ')
-        emails = parts.reject { |part| !part.include?('@') }
+        emails = parts.select { |part| part.include?('@') }
         results = []
         Array(emails).each do |email_str|
           email = Mail::Address.new(email_str)

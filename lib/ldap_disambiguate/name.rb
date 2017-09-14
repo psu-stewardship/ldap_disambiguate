@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 module LdapDisambiguate
   # This class allows you to use LDAP to disambiguate a text name
   #
@@ -84,7 +85,7 @@ module LdapDisambiguate
         result = nil
         if parsed.given && parsed.given.count(' ') >= 1
           parts = name_parts(parsed.given, 1)
-          result = try_name(parts[:family], parsed.family)
+          result = try_name(parts[:family], parsed.family) if parts[:family].size > 1
         end
         result
       end

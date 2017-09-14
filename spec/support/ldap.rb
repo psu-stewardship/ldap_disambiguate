@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 def expect_ldap(method, response, *args)
   return unless in_travis
   expect(LdapDisambiguate::LdapUser).to receive(method).with(*args).and_return(response)

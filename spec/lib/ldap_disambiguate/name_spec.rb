@@ -1,8 +1,9 @@
 # frozen_string_literal: true
+
 require 'spec_helper'
 
 describe LdapDisambiguate::Name do
-  let(:ldap_fields) { [:uid, :givenname, :sn, :mail, :eduPersonPrimaryAffiliation, :displayname] }
+  let(:ldap_fields) { %i[uid givenname sn mail eduPersonPrimaryAffiliation displayname] }
   subject { described_class.disambiguate(name) }
   before do
     allow(LdapDisambiguate::LdapUser).to receive(:directory_attributes).with(name, ldap_fields).and_return([]) if in_travis
@@ -43,10 +44,10 @@ describe LdapDisambiguate::Name do
   end
 
   context 'when we have initials for first name' do
-    let(:name) { 'A.S. Ostrowski' }
-    let(:response) { format_name_response('aso118', 'ALEX S', 'OSTROWSKI', 'MEMBER') }
+    let(:name) { 'A.J. Ostrowski' }
+    let(:response) { format_name_response('ajo5254', 'AMANDA JEAN', 'OSTROWSKI', 'STUDENT') }
     it 'finds the user' do
-      expect_ldap(:query_ldap_by_name, response, 'A S', 'Ostrowski', ldap_fields)
+      expect_ldap(:query_ldap_by_name, response, 'A J', 'Ostrowski', ldap_fields)
       is_expected.to eq(response)
     end
   end
@@ -176,7 +177,8 @@ describe LdapDisambiguate::Name do
     context "when name is Shih", unless: in_travis do
       let(:name) { "Dr. Patrick C. Shih" }
       it 'it does not error' do
-        expect_ldap(subject.count).to eq(0)
+        puts subject
+        expect(subject.count).to eq(0)
       end
     end
   end
