@@ -8,11 +8,11 @@ describe LdapDisambiguate::Email do
 
   context 'when the email is not their id' do
     let(:name) { 'Zuleima Karpyn & Turgay Ertekin ZKarpyn@psu.edu' }
-    let(:response) { format_name_response('ztk101', 'ZULEIMA T', 'KARPYN', 'FACULTY') }
+    let(:response) { format_name_response('ztk101', 'Zuleima T', 'Karpyn', 'FACULTY') }
     it 'finds the user via email' do
       expect_ldap(:directory_attributes, [], 'ZKarpyn', ldap_fields)
       expect_ldap(:query_ldap_by_mail, response, 'ZKarpyn@psu.edu', ldap_fields)
-      is_expected.to eq([{ id: "ztk101", given_name: "ZULEIMA T", surname: "KARPYN", email: "ztk101@psu.edu", affiliation: ["FACULTY"], displayname: "ZULEIMA T KARPYN" }])
+      is_expected.to eq([{ id: "ztk101", given_name: "Zuleima T", surname: "Karpyn", email: "ztk101@psu.edu", affiliation: ["FACULTY"], displayname: "Zuleima T Karpyn" }])
     end
   end
 
