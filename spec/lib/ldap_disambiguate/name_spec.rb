@@ -35,8 +35,8 @@ describe LdapDisambiguate::Name do
 
   context 'when we have multiple combined with an and' do
     let(:name) { 'Carolyn Cole and Adam Wead' }
-    let(:response1) { format_name_response('cam156', 'CAROLYN ANN', 'COLE') }
-    let(:response2) { format_name_response('agw13', 'ADAM GARNER', 'WEAD') }
+    let(:response1) { format_name_response('cam156', 'Carolyn Ann', 'Cole') }
+    let(:response2) { format_name_response('agw13', 'Adam Garner', 'Wead') }
     it 'finds both users' do
       expect_ldap(:query_ldap_by_name, response1, 'Carolyn', 'Cole', ldap_fields)
       expect_ldap(:query_ldap_by_name, response2, 'Adam', 'Wead', ldap_fields)
@@ -88,7 +88,7 @@ describe LdapDisambiguate::Name do
 
   context 'when the user has strange characters' do
     let(:name) { 'Carolyn Cole *' }
-    let(:response) { format_name_response('cam156', 'CAROLYN ANN', 'COLE', 'STAFF') }
+    let(:response) { format_name_response('cam156', 'Carolyn Ann', 'Cole', 'STAFF') }
     it 'cleans the name' do
       expect_ldap(:query_ldap_by_name, response, 'Carolyn', 'Cole', ldap_fields)
       is_expected.to eq(response)
@@ -97,7 +97,7 @@ describe LdapDisambiguate::Name do
 
   context 'when the user has an apostrophy' do
     let(:name) { "Anthony R. D'Augelli" }
-    let(:response) { format_name_response('ard', 'ANTHONY RAYMOND', "D'AUGELLI", 'EMERITUS') }
+    let(:response) { format_name_response('ard', 'Anthony Raymond', "D'Augelli", 'EMERITUS') }
     it 'finds the user' do
       expect_ldap(:query_ldap_by_name, response, 'Anthony R', "D'Augelli", ldap_fields)
       is_expected.to eq(response)
@@ -106,7 +106,7 @@ describe LdapDisambiguate::Name do
 
   context 'when the user has many names' do
     let(:name) { 'ALIDA HEATHER DOHN ROSS' }
-    let(:response) { format_name_response('hdr10', 'ALIDA HEATHER', 'DOHN ROSS') }
+    let(:response) { format_name_response('hdr10', 'Alida Heather', 'Dohn Ross') }
     it 'finds the user' do
       expect_ldap(:query_ldap_by_name, [], 'ALIDA HEATHER DOHN', 'ROSS', ldap_fields)
       expect_ldap(:query_ldap_by_name, [], 'DOHN', 'ROSS', ldap_fields)
@@ -117,7 +117,7 @@ describe LdapDisambiguate::Name do
 
   context 'when the user has additional information' do
     let(:name) { 'Cole, Carolyn (Kubicki Group)' }
-    let(:response) { format_name_response('cam156', 'CAROLYN ANN', 'COLE') }
+    let(:response) { format_name_response('cam156', 'Carolyn Ann', 'Cole') }
     it 'cleans the name' do
       expect_ldap(:query_ldap_by_name, response, 'Carolyn', 'Cole', ldap_fields)
       is_expected.to eq(response)
@@ -126,7 +126,7 @@ describe LdapDisambiguate::Name do
 
   context 'when the user has and as part of their name' do
     let(:name) { 'Amanda Ramcharan' }
-    let(:response) { format_name_response('amr418', 'AMANDA M', 'RAMCHARAN', 'FACULTY') }
+    let(:response) { format_name_response('amr418', 'Amanda M', 'Ramcharan', 'FACULTY') }
     it 'cleans the name' do
       expect_ldap(:query_ldap_by_name, response, 'Amanda', 'Ramcharan', ldap_fields)
       is_expected.to eq(response)
@@ -136,13 +136,12 @@ describe LdapDisambiguate::Name do
   context 'when the user has an email in thier name' do
     context 'when the email is not their id' do
       let(:name) { 'Barbara I. Dewey a bdewey@psu.edu' }
-      let(:response) { format_name_response('bid1', 'BARBARA IRENE', 'DEWEY') }
+      let(:response) { format_name_response('bid1', 'Barbara Irene', 'Dewey') }
       it 'does not find the user' do
         expect_ldap(:directory_attributes, [], 'Barbara I. Dewey a bdewey@psu.edu', ldap_fields)
         expect_ldap(:directory_attributes, [], 'bdewey', ldap_fields)
         expect_ldap(:query_ldap_by_mail, response, 'bdewey@psu.edu', ldap_fields)
-        is_expected.to eq([{ id: "bid1", given_name: "BARBARA IRENE", surname: "DEWEY", email: "bid1@psu.edu", affiliation: ["STAFF"], displayname: "BARBARA IRENE DEWEY" }])
-        # is_expected.to eq([{ id: '', given_name: '', surname: '', email: 'bdewey@psu.edu', affiliation: [], displayname: '' }])
+        is_expected.to eq(response)
       end
     end
 

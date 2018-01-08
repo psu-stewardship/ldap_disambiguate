@@ -12,7 +12,6 @@ Gem::Specification.new do |s|
   s.description = 'Queries the PSU ldap to see if it can find a user that matches the text to get the prefered name and email'
   s.authors     = ['Carolyn Cole']
   s.email       = 'cam156@psu.edu'
-  s.files       = ['lib/ldap_disambiguate.rb']
   s.homepage    =
     'https://github.com/psu-stewardship/ldap_disambiguate'
   s.license       = 'APACHE2'
@@ -23,9 +22,9 @@ Gem::Specification.new do |s|
   s.require_paths = ['lib']
 
   s.add_dependency 'hydra-ldap'
-  s.add_dependency 'net-ldap', '0.13.0'
-  s.add_dependency 'namae', '0.9.3'
   s.add_dependency 'mail', '~> 2.6'
+  s.add_dependency 'namae', '0.9.3'
+  s.add_dependency 'net-ldap', '~> 0.16.0'
 
   s.add_development_dependency 'bundler', '~> 1.11'
   s.add_development_dependency 'rake', '~> 10.0'

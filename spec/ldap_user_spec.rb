@@ -4,12 +4,12 @@ require 'spec_helper'
 
 describe LdapDisambiguate::LdapUser, type: :model do
   describe '#directory_attributes' do
-    let(:cn) { 'CAROLYN ANN COLE' }
-    let(:dn) { ['CAROLYN ANN COLE'] }
+    let(:cn) { 'Carolyn Ann Cole' }
+    let(:dn) { ['Carolyn Ann Cole'] }
     let(:entry) do
       entry = Net::LDAP::Entry.new
       entry['dn'] = ['uid=cam156,dc=psu,edu']
-      entry['cn'] = ['CAROLYN ANN COLE']
+      entry['cn'] = ['Carolyn Ann Cole']
       entry
     end
     context 'LDAP behaves' do
